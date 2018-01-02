@@ -4,6 +4,8 @@ const headers = {
 };
 
 module.exports = function sse(response) {
+  if (response.stream)
+    response = response.stream;
   if (response.respond) {
     headers[':status'] = 200;
     response.respond(headers);

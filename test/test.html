@@ -1,0 +1,7 @@
+<script>
+const s = new EventSource('/events');
+s.addEventListener('time', ({ data }) => {
+  console.log(data);
+});
+s.onerror = console.log;
+</script>
