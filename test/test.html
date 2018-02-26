@@ -1,7 +1,17 @@
-<script>
-const s = new EventSource('/events');
-s.addEventListener('time', ({ data }) => {
-  console.log(data);
-});
-s.onerror = console.log;
-</script>
+<!DOCTYPE html>
+<head>
+  <meta charset=UTF-8/>
+</head>
+<body>
+  <script>
+  Object.assign(document.body.style, { 'word-wrap': 'break-word', 'line-height': '1em' });
+  const s = new EventSource('/events');
+  s.onmessage = ({ data }) => {
+    document.body.innerHTML += data;
+    document.body.scrollTop = document.body.scrollHeight;
+    document.documentElement.scrollTop = document.documentElement.scrollHeight;
+  };
+  s.onerror = console.log;
+  </script>
+</body>
+</html>

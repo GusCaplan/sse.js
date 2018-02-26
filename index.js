@@ -1,6 +1,8 @@
+'use strict';
+
 const headers = {
   'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache',
+  'Cache-Control': 'no-cache, no-transform',
 };
 
 module.exports = function sse(response) {
@@ -17,23 +19,27 @@ module.exports = function sse(response) {
   response.write(':ok\n\n');
 
   return {
-    send(event, data, id) {
+    send({ event, data, id, comment }) {
+      const end = data !== undefined || comment !== undefined ? '' : '\n';
       if (id !== undefined)
-        response.write(`id: ${id}\n`);
-      response.write(`event: ${event}\n`);
-      if (!data)
-        return;
-      const lines = String(data).replace(/\r(\n)?/g, '\n').split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (i + 1 === lines.length)
-          response.write(`data: ${lines[i]}\n\n`);
-        else
-          response.write(`data: ${lines[i]}\n`);
-      }
-      return true;
+        response.write(`id: ${id}\n${end}`);
+      if (event !== undefined)
+        response.write(`event: ${event}\n${end}`);
+      if (comment !== undefined)
+        multilineSend(response, comment.toString());
+      if (data !== undefined)
+        multilineSend(response, data.toString());
     },
     retry(time) {
       return response.write(`retry: ${time}\n\n`);
     },
   };
 };
+
+function multilineSend(stream, text) {
+  const lines = text.split(/\r(\n)?/g);
+  const len = lines.length - 1;
+  for (let i = 0; i < len; i++)
+    stream.write(`data: ${lines[i]}\n`);
+  stream.write(`data: ${lines[len]}\n\n`);
+}
